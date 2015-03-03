@@ -142,8 +142,8 @@ public class EventManager {
 		EXIT (PartyMessage.HANDLER, false),
 		
 		// MastershipMessage's
-		REQUEST_MASTERSHIP  (EventMessage.HANDLER, false),
-		TRANSFER_MASTERSHIP (EventMessage.HANDLER, false);
+		REQUEST_MASTERSHIP  (MastershipMessage.HANDLER, false),
+		TRANSFER_MASTERSHIP (MastershipMessage.HANDLER, false);
 		
 		private EventHandler handler;
 		private boolean stealth;
