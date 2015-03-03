@@ -137,8 +137,8 @@ public class EventManager {
 		VOLUME (ControlMessage.HANDLER, false),
 		
 		// PartyMessage's
-		JOIN (EventMessage.HANDLER, false),
-		EXIT (EventMessage.HANDLER, false),
+		JOIN (PartyMessage.HANDLER, false),
+		EXIT (PartyMessage.HANDLER, false),
 		
 		// MastershipMessage's
 		REQUEST_MASTERSHIP  (EventMessage.HANDLER, false),
