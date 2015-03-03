@@ -119,6 +119,7 @@ public class EventManager {
 	public static enum Event {
 		// Events log messages
 		MERGE_LOG_CHUNK (LogMessage.HANDLER,   true),
+		EVENT_END 		(TestDrive.HANDLER,    true),
 		
 		// Non-messaging events
 		EVENT_1 (EventMessage.HANDLER, false),
