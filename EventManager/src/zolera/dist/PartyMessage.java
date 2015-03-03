@@ -6,7 +6,7 @@ import zolera.dist.EventManager.EventHandler;
 public class PartyMessage
 extends EventMessage {
 	// new party message to join/leave a party
-	public PartyMessage(int vol, Event ev) {
+	public PartyMessage(Event ev) {
 		super(ev);
 		
 		if (ev != Event.JOIN && ev != Event.EXIT)
