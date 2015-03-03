@@ -38,9 +38,9 @@ public class TestMain {
 		
 		EventMessage msg;
 		if (proc == 1)
-			msg = new CodeMessage("$0mE_cOd3", Event.SENDCODE);
+			msg = new EventMessage(Event.EVENT_1);
 		else
-			msg = new EventMessage(Event.SENDEVENT);
+			msg = new EventMessage(Event.EVENT_2);
 		CommunicationsManager.send(names[other_proc], msg);
 		
 		System.out.println("Say 'stop'");

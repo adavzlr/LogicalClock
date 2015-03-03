@@ -117,9 +117,31 @@ public class EventManager {
 	
 	// The Event enumeration
 	public static enum Event {
+		// Events log messages
 		MERGE_LOG_CHUNK (LogMessage.HANDLER,   true),
-		SENDEVENT       (EventMessage.HANDLER, false),
-		SENDCODE        (CodeMessage.HANDLER,  false);
+		
+		// Non-messaging events
+		EVENT_1 (EventMessage.HANDLER, false),
+		EVENT_2 (EventMessage.HANDLER, false),
+		EVENT_3 (EventMessage.HANDLER, false),
+		
+		// MutexMessage's
+		REQUEST_CS     (EventMessage.HANDLER, false),
+		ACKNOWLEDGE_CS (EventMessage.HANDLER, false),
+		RELEASE_CS     (EventMessage.HANDLER, false),
+		
+		// ControlMessage's
+		PLAY   (EventMessage.HANDLER, false),
+		STOP   (EventMessage.HANDLER, false),
+		VOLUME (EventMessage.HANDLER, false),
+		
+		// PartyMessage's
+		JOIN (EventMessage.HANDLER, false),
+		EXIT (EventMessage.HANDLER, false),
+		
+		// MastershipMessage's
+		REQUEST_MASTERSHIP  (EventMessage.HANDLER, false),
+		TRANSFER_MASTERSHIP (EventMessage.HANDLER, false);
 		
 		private EventHandler handler;
 		private boolean stealth;
