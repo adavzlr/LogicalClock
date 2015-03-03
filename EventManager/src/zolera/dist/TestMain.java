@@ -18,7 +18,7 @@ public class TestMain {
 		int proc = scn.nextInt();
 		if (proc != 1 && proc != 2) {
 			scn.close();
-			throw new IllegalArgumentException("You IDIOT!");
+			throw new IllegalArgumentException("Invalid process ID");
 		}
 		
 		CommunicationsManager.initialize(names[proc], ports[proc]);
@@ -30,7 +30,7 @@ public class TestMain {
 		catch (UnknownHostException uhe) {
 			scn.close();
 			CommunicationsManager.destroy();
-			throw new IllegalStateException("OOOOoooooo!!!");
+			throw new IllegalStateException("Issue with LocalHost");
 		}
 		
 		System.out.println("Say 'start'");

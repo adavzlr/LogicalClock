@@ -127,14 +127,14 @@ public class EventManager {
 		EVENT_3 (EventMessage.HANDLER, false),
 		
 		// MutexMessage's
-		REQUEST_CS     (EventMessage.HANDLER, false),
-		ACKNOWLEDGE_CS (EventMessage.HANDLER, false),
-		RELEASE_CS     (EventMessage.HANDLER, false),
+		REQUEST_CS     (MutexMessage.HANDLER, false),
+		ACKNOWLEDGE_CS (MutexMessage.HANDLER, false),
+		RELEASE_CS     (MutexMessage.HANDLER, false),
 		
 		// ControlMessage's
-		PLAY   (EventMessage.HANDLER, false),
-		STOP   (EventMessage.HANDLER, false),
-		VOLUME (EventMessage.HANDLER, false),
+		PLAY   (ControlMessage.HANDLER, false),
+		STOP   (ControlMessage.HANDLER, false),
+		VOLUME (ControlMessage.HANDLER, false),
 		
 		// PartyMessage's
 		JOIN (EventMessage.HANDLER, false),
