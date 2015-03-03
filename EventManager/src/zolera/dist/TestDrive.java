@@ -12,6 +12,7 @@ import zolera.dist.EventManager.EventHandler;
 public class TestDrive extends TimerTask {
 	
 	private static int endCount = 0;
+	private static final int eventLimit = 20;
 	
 	private int[] ports = {1521, 1522, 1523, 1524};
 	private String[] names = {"P1","P2","P3","P4"};
@@ -37,6 +38,7 @@ public class TestDrive extends TimerTask {
 	{
 		CommunicationsManager.initialize(names[proc], ports[proc]);
 		currentProcess = proc;
+		eventCounter = 0;
 		addRecipients();
 	}
 	
@@ -55,12 +57,60 @@ public class TestDrive extends TimerTask {
 	
 	@Override
 	public void run() {
-		Random randomGen = new Random();
-		int randomProcess = randomGen.nextInt(ports.length);
-		Event randomMessage = validEvents[randomGen.nextInt(validEvents.length)];
-		EventMessage msg = new EventMessage(randomMessage);
-		CommunicationsManager.send(names[randomProcess], msg);
-		
+		if(eventCounter < eventLimit) {
+			Random randomGen = new Random();
+			int randomProcess = randomGen.nextInt(ports.length);
+			Event randomMessage = validEvents[randomGen.nextInt(validEvents.length)];
+			EventMessage msg = new EventMessage(randomMessage);
+			switch(randomMessage)
+			{
+				case ACKNOWLEDGE_CS:
+					break;
+				case EXIT:
+					break;
+				case JOIN:
+					break;
+				case PLAY:
+					break;
+				case RELEASE_CS:
+					break;
+				case REQUEST_CS:
+					break;
+				case REQUEST_MASTERSHIP:
+					break;
+				case STOP:
+					break;
+				case TRANSFER_MASTERSHIP:
+					break;
+				case VOLUME:
+					break;
+				case EVENT_1:
+					break;
+				case EVENT_2:
+					break;
+				case EVENT_3:
+			}
+			CommunicationsManager.send(names[randomProcess], msg);
+		}
+		else {
+			if(currentProcess != 0) {
+				EventManager.sendLog(names[1]);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				EventMessage msg = new EventMessage(Event.EVENT_END);
+				CommunicationsManager.send(names[0], msg);
+				CommunicationsManager.destroy();
+			}
+			else {
+				if(endCount == names.length - 1) {
+					System.out.println(EventManager.getLog());
+					CommunicationsManager.destroy();
+				}
+			}
+		}
 	}
 	
 	public static void main(String [] args)
