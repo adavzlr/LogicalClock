@@ -68,7 +68,7 @@ public class CommunicationsManager {
 	// Adds new receiver to the list and starts listening for incoming messages
 	public static void addReceiver(String rcvname, InetAddress addr, int port) {
 		if (name == null || socket == null)
-			throw new IllegalStateException("Cannot send until we have a name set");
+			throw new IllegalStateException("Cannot add until we have a name set");
 		
 		if (rcvname == null || !rcvname.matches("\\w{1,10}") || addr == null || port <= 0)
 			throw new IllegalArgumentException("name '" + rcvname + "', port " + port + ", addr " + addr);
@@ -84,11 +84,23 @@ public class CommunicationsManager {
 	// Removes a receiver from the list and stops its listening thread
 	public static void removeReceiver(String rcvname) {
 		if (name == null || socket == null)
-			throw new IllegalStateException("Cannot send until we have a name set");
+			throw new IllegalStateException("Cannot remove until we have a name set");
 		
 		Receiver receiver = receivers.remove(rcvname);
 		if (receiver == null)
 			throw new IllegalArgumentException("Name '"+rcvname+"'");
+	}
+	
+	// return whether the comms mgr knows about a receiver
+	public static boolean knows(String rcvname) {
+		if (name == null || socket == null)
+			throw new IllegalStateException("Cannot query until we have a name set");
+		
+		Receiver receiver = receivers.get(rcvname);
+		if (receiver == null)
+			return false;
+		else
+			return true;
 	}
 	
 	

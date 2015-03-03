@@ -8,7 +8,7 @@ extends EventMessage {
 	public static final int INVALID_VOLUME = -1;
 	private int volume;
 	
-	// new control message for a given resource name
+	// new control message play/stop or set volume
 	public ControlMessage(int vol, Event ev) {
 		super(ev);
 		
@@ -53,7 +53,7 @@ extends EventMessage {
 	
 	
 	
-	// Handler for MutexMessage's
+	// Handler for ControlMessage's
 	public static final EventHandler HANDLER = new EventHandler() {
 		@Override
 		public EventMessage newMessage() {
