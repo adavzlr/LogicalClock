@@ -136,18 +136,8 @@ public class CommunicationsManager {
 	
 	
 	
-	// Broadcast a message to all registered receivers
-	public static void sendAll(EventMessage msg) {
-		if (name == null)
-			throw new IllegalStateException("Haven't initialized");
-		
-		for (String rcvname : receivers.keySet()) {
-			send(rcvname, msg);
-		}
-	}
-	
-	// Sends a message to a specific receiver
-	public static void send(String rcvname, EventMessage msg) {
+	// prepare message to be sent to a single receiver
+	public static void prepareMsg(String rcvname, EventMessage msg) {
 		if (name == null)
 			throw new IllegalStateException("Haven't initialized");
 		
@@ -155,12 +145,71 @@ public class CommunicationsManager {
 		if (rcv == null || msg == null || msg.getEvent() == null)
 			throw new IllegalArgumentException("Name '"+rcvname+"', Message "+msg);
 		
-		// prepare message
+		// update message with sender/receiver info
 		msg.setSender(name);
 		msg.setReceiver(rcv.name);
 		
+		// Update EventManager's clock and log and timestamp message
+		if (!msg.getEvent().isStealth())
+			EventManager.stamp(msg);
+	}
+	
+	// Sends a message to a specific receiver
+	public static void send(String rcvname, EventMessage msg, boolean prepared) {
+		if (!prepared)
+			prepareMsg(rcvname, msg);
+		
+		// send message
+		Receiver rcv = receivers.get(rcvname);
+		send_internal(rcv, msg);
+	}
+	
+	// Sends an unprepared message to a specific receiver
+	public static void send(String rcvname, EventMessage msg) {
+		send(rcvname, msg, false);
+	}
+	
+	// prepare message to be sent to all receivers
+	public static void prepareMsgForAll(EventMessage msg) {
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
+		
+		if (msg == null || msg.getEvent() == null)
+			throw new IllegalArgumentException("Message "+msg);
+		
+		// update message with sender/receiver info
+		msg.setSender(name);
+		msg.setReceiver("*");
+		
+		// Update EventManager's clock and log and timestamp message
+		if (!msg.getEvent().isStealth())
+			EventManager.stamp(msg);
+	}
+	
+	// Broadcast a message to all registered receivers
+	public static void sendAll(EventMessage msg, boolean prepared) {
+		if (!prepared)
+			prepareMsgForAll(msg);
+		
+		// send message to all receivers
+		for (String rcvname : receivers.keySet()) {
+			Receiver rcv = receivers.get(rcvname);
+			send_internal(rcv, msg);
+		}
+	}
+	
+	// Broadcast an unprepared message to all registered receivers
+	public static void sendAll(EventMessage msg) {
+		sendAll(msg, false);
+	}
+	
+	// given a receiver, do the actual send of the message
+	private static void send_internal(Receiver rcv, EventMessage msg) {
+		// update message with receiver's name
+		msg.setReceiver(rcv.name);
+		
 		// transform message into a byte array
-		byte[] buffer = prepare(msg).getBytes(StandardCharsets.UTF_8);
+		byte[] buffer = msg.marshall().getBytes(StandardCharsets.UTF_8);
 		if (buffer.length > MAX_BUFFER_LENGTH)
 			throw new IllegalArgumentException("Message is too big: "+buffer.length);
 		
@@ -171,17 +220,6 @@ public class CommunicationsManager {
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
-	}
-	
-	// Prepares a message for transmission (also marshalls it into a string)
-	private static String prepare(EventMessage msg) {
-		// Update EventManager clock and log and timestamp message
-		if (!msg.getEvent().isStealth())
-			EventManager.stamp(msg);
-		
-		// marshall message to string and return it
-		String text = msg.marshall();
-		return text;
 	}
 	
 	
