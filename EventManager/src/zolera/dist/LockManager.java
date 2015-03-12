@@ -12,21 +12,68 @@ public class LockManager {
 	private static Thread reqThread = null;
 	
 	
-	
+	/**
+	 * Sends a lock request to every process and waits until the lock is given
+	 * to the current thread
+	 * 
+	 * @param res Resource being accessed at
+	 */
 	public static synchronized void lock(String res) {
-		// 2. broadcast a request message to every receiver (same timestamp)
-		// 1. add request to my own queue
+		// Create and prepare the request message
+		MutexMessage msg = new MutexMessage(res, Event.REQUEST_CS);
+		CommunicationsManager.prepareMsg(null, msg);
 		
-		reqThread = Thread.currentThread();
+		// Get resource's queue
+		Queue<LockRequest> resourceQueue = resources.get(res);
+		if(resourceQueue == null){
+			resourceQueue = new PriorityQueue<>();
+			resources.put(res, resourceQueue);
+		}
+		
+		// Add request to my own queue
+		LockRequest myOwnRequest = new LockRequest(res, CommunicationsManager.getName(), msg.getClock());		
+		resourceQueue.add(myOwnRequest);
+		
+		// Broadcast a request message to every receiver (same timestamp)	
+		CommunicationsManager.sendAll(msg, true);
+		
+		
 		// Wait like a champ until haveLock(res)==true
+		reqThread = Thread.currentThread();
+		while(!haveLock(res)){
+			try {
+				Thread.currentThread().wait();
+			} catch (InterruptedException e) {}
+		}
 	}
 	
 	public static synchronized void release(String res) {
-		// 2. delete my own request (supposedly at the head of the queue)
-		// 1. broadcast a release message to every receiver
+		// Broadcast a release message to every receiver
+		MutexMessage msg = new MutexMessage(res, Event.RELEASE_CS);
+		CommunicationsManager.sendAll(msg);
 		
-		// At the end:
-		// go through all requests that have acknowledges == 0 and send acknowledges (also set to == 1)
+		// Get the resource queue and validate exists
+		Queue<LockRequest> resourceQueue = resources.get(res);
+		if(resourceQueue == null){
+			throw new IllegalArgumentException("Invalid resource, " + res);
+		}
+		
+		// Delete my own request (supposedly at the head of the queue)
+		if (resourceQueue.peek().requester.equals(CommunicationsManager.getName())){
+			resourceQueue.remove();
+		}
+		else {
+			throw new IllegalArgumentException("Request wasn't at the top of the queue."+resourceQueue.peek().requester+", "+res);
+		}
+		
+		// Going through all requests that have acknowledges == 0 and send acknowledges
+		for(LockRequest currRequest : resourceQueue){
+			if(currRequest.acknowledges == 0){
+				MutexMessage ackMsg = new MutexMessage(currRequest.resource, Event.ACKNOWLEDGE_CS);
+				CommunicationsManager.send(currRequest.requester, ackMsg);
+				currRequest.acknowledges = 1;
+			}
+		}
 	}
 	
 	

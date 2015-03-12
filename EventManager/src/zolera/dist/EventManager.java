@@ -13,18 +13,18 @@ public class EventManager {
 	private EventManager() {}
 	
 	// increment clock value
-	private static void tick() {
+	private static synchronized void tick() {
 		clock++;
 	}
 	
 	// record an event in the log dictionary and assign it a clock time
-	public static void record(Event ev) {
+	public static synchronized void record(Event ev) {
 		tick();
 		addLogRecord(clock, clock + "/REC/" + CommunicationsManager.getName() + "/" + ev);
 	}
 	
 	// record the submission of a message with a new clock time and timestamp the message
-	public static void stamp(EventMessage msg) {
+	public static synchronized void stamp(EventMessage msg) {
 		tick();
 		addLogRecord(clock, clock + "/SND/" + CommunicationsManager.getName() + "/" + msg.getEvent()
 		                    + "/" + msg.getSender() + "/" + msg.getReceiver());
@@ -33,7 +33,7 @@ public class EventManager {
 	}
 	
 	// record the reception of a message with a clock time depending on our current time and msg time
-	public static void update(EventMessage msg) {
+	public static synchronized void update(EventMessage msg) {
 		// Lamport step for incoming messages
 		if (msg.getClock() > clock)
 			clock = msg.getClock();
