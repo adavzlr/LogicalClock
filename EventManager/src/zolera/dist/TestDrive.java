@@ -48,8 +48,7 @@ public class TestDrive extends TimerTask {
 	/**
 	 * List of valid events
 	 */
-	private static Event[] validEvents = { Event.ACKNOWLEDGE_CS, Event.EXIT,
-			Event.JOIN, Event.PLAY, Event.RELEASE_CS, Event.REQUEST_CS,
+	private static Event[] validEvents = { Event.EXIT, Event.JOIN, Event.PLAY,
 			Event.REQUEST_MASTERSHIP, Event.STOP, Event.TRANSFER_MASTERSHIP,
 			Event.VOLUME, Event.EVENT_1, Event.EVENT_2, Event.EVENT_3 };
 
@@ -59,7 +58,7 @@ public class TestDrive extends TimerTask {
 	 * @param proc
 	 */
 	public TestDrive(int proc) {
-		CommunicationsManager.initialize(names[proc], ports[proc]);
+		CommunicationsManager.initialize(names[proc], proc, ports[proc]);
 		currentProcess = proc;
 		eventCounter = 0;
 		addRecipients();
@@ -97,7 +96,7 @@ public class TestDrive extends TimerTask {
 		try {
 			for (int i = 0; i < ports.length; i++) {
 				if (i != currentProcess)
-					CommunicationsManager.addReceiver("P" + i,
+					CommunicationsManager.addReceiver("P" + i, i,
 							InetAddress.getLocalHost(), ports[i]);
 			}
 		} catch (UnknownHostException uhe) {
@@ -122,10 +121,6 @@ public class TestDrive extends TimerTask {
 				EventMessage msg = null;
 				
 				switch (randomMessage) {
-					case ACKNOWLEDGE_CS:
-						msg = new MutexMessage("CS_" + randomGen.nextInt(30),
-								Event.ACKNOWLEDGE_CS);
-						break;
 					case EXIT:
 						msg = new PartyMessage(Event.EXIT);
 						break;
@@ -134,12 +129,6 @@ public class TestDrive extends TimerTask {
 						break;
 					case PLAY:
 						msg = new ControlMessage(ControlMessage.INVALID_VOLUME, Event.PLAY);
-						break;
-					case RELEASE_CS:
-						msg = new MutexMessage("CS_" + randomGen.nextInt(30), Event.RELEASE_CS);
-						break;
-					case REQUEST_CS: 
-						msg = new MutexMessage("CS_" + randomGen.nextInt(30), Event.REQUEST_CS);
 						break;
 					case REQUEST_MASTERSHIP:
 						msg = new MastershipMessage(null, Event.REQUEST_MASTERSHIP);

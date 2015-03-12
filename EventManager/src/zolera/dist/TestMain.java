@@ -21,11 +21,11 @@ public class TestMain {
 			throw new IllegalArgumentException("Invalid process ID");
 		}
 		
-		CommunicationsManager.initialize(names[proc], ports[proc]);
+		CommunicationsManager.initialize(names[proc], proc, ports[proc]);
 		
 		int other_proc = (proc == 1 ? 2 : 1);
 		try {
-			CommunicationsManager.addReceiver(names[other_proc], InetAddress.getLocalHost(), ports[other_proc]);
+			CommunicationsManager.addReceiver(names[other_proc], other_proc, InetAddress.getLocalHost(), ports[other_proc]);
 		}
 		catch (UnknownHostException uhe) {
 			scn.close();

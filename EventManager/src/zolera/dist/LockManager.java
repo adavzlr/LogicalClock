@@ -31,7 +31,7 @@ public class LockManager {
 		}
 		
 		// Add request to my own queue
-		LockRequest myOwnRequest = new LockRequest(res, CommunicationsManager.getName(), msg.getClock());		
+		LockRequest myOwnRequest = new LockRequest(CommunicationsManager.getName(), msg.getClock());		
 		resourceQueue.add(myOwnRequest);
 		
 		// Broadcast a request message to every receiver (same timestamp)	
@@ -69,7 +69,7 @@ public class LockManager {
 		// Going through all requests that have acknowledges == 0 and send acknowledges
 		for(LockRequest currRequest : resourceQueue){
 			if(currRequest.acknowledges == 0){
-				MutexMessage ackMsg = new MutexMessage(currRequest.resource, Event.ACKNOWLEDGE_CS);
+				MutexMessage ackMsg = new MutexMessage(res, Event.ACKNOWLEDGE_CS);
 				CommunicationsManager.send(currRequest.requester, ackMsg);
 				currRequest.acknowledges = 1;
 			}
@@ -97,7 +97,7 @@ public class LockManager {
 				throw new IllegalArgumentException("Repeated request received "+requester+", "+resource);
 		}
 		
-		LockRequest request = new LockRequest(resource, requester, clock);
+		LockRequest request = new LockRequest(requester, clock);
 		queue.add(request);
 		
 		if (!haveLock(resource)) {
@@ -182,13 +182,11 @@ public class LockManager {
 	
 	// Information about a request for a lock
 	private static class LockRequest implements Comparable<LockRequest> {
-		public String resource;
 		public String requester;
 		public int    acknowledges;
 		public long   clock;
 		
-		public LockRequest(String res, String req, long clk) {
-			resource     = res;
+		public LockRequest(String req, long clk) {
 			requester    = req;
 			clock        = clk;
 			acknowledges = 0;
