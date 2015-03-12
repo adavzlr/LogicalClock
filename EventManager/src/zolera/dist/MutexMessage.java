@@ -60,8 +60,20 @@ extends EventMessage {
 		@Override
 		public void process(EventMessage evmsg) {
 			MutexMessage msg = (MutexMessage) evmsg;
-			EventMessage.HANDLER.process(evmsg);
-			System.out.println("Resource:\t" + msg.getResource() + "\n");
+			
+			switch (msg.getEvent()) {
+			case REQUEST_CS:
+				LockManager.processLockMessage(msg);
+				break;
+			case RELEASE_CS:
+				LockManager.processReleaseMessage(msg);
+				break;
+			case ACKNOWLEDGE_CS:
+				LockManager.processAcknowledgeMessage(msg);
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid message type "+msg.getEvent());
+			}
 		}
 	};
 }

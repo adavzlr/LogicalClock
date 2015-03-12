@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class CommunicationsManager {
 	private static String name = null;
+	private static int id = -1;
 	private static DatagramSocket socket = null;
 	private static Thread listener;
 	private static Map<String, Receiver> receivers = new HashMap<>();
@@ -22,13 +23,14 @@ public class CommunicationsManager {
 	private CommunicationsManager() {}
 	
 	// Sets the name and port for our communications channel and start a listener thread
-	public static void initialize(String ourName, int port) {
-		if (ourName == null || !ourName.matches("\\w{1,10}") || port < 0)
-			throw new IllegalArgumentException("name '"+ourName+"'");
+	public static void initialize(String ourName, int ourId, int port) {
+		if (ourName == null || !ourName.matches("\\w{1,10}") || port < 0 || ourId < 0)
+			throw new IllegalArgumentException("name '"+ourName+"', "+ourId+", "+port);
 		
 		// initialize name, socket and listener thread
 		try {
 			name     = ourName;
+			id       = ourId;
 			socket   = new DatagramSocket(port);
 			listener = new Thread(new ListenerRunnable());
 		} catch (SocketException se) {
@@ -41,6 +43,9 @@ public class CommunicationsManager {
 	
 	// Close our communication channel and stop the listener thread
 	public static void destroy() {
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
+		
 		// Close our socket
 		socket.close();
 		
@@ -60,21 +65,25 @@ public class CommunicationsManager {
 	}
 	
 	public static String getName() {
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
+		
 		return name;
 	}
 	
 	
 	
 	// Adds new receiver to the list and starts listening for incoming messages
-	public static void addReceiver(String rcvname, InetAddress addr, int port) {
-		if (name == null || socket == null)
-			throw new IllegalStateException("Cannot add until we have a name set");
+	public static void addReceiver(String rcvname, int rcvid, InetAddress addr, int port) {
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
 		
-		if (rcvname == null || !rcvname.matches("\\w{1,10}") || addr == null || port <= 0)
+		if (rcvname == null || !rcvname.matches("\\w{1,10}") || rcvname.equals("All") || addr == null || port <= 0)
 			throw new IllegalArgumentException("name '" + rcvname + "', port " + port + ", addr " + addr);
 		
 		Receiver receiver = new Receiver();
 		receiver.name     = rcvname;
+		receiver.id       = rcvid;
 		receiver.address  = addr;
 		receiver.port     = port;
 		
@@ -83,18 +92,26 @@ public class CommunicationsManager {
 	
 	// Removes a receiver from the list and stops its listening thread
 	public static void removeReceiver(String rcvname) {
-		if (name == null || socket == null)
-			throw new IllegalStateException("Cannot remove until we have a name set");
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
 		
 		Receiver receiver = receivers.remove(rcvname);
 		if (receiver == null)
 			throw new IllegalArgumentException("Name '"+rcvname+"'");
 	}
 	
+	// How many receivers are registered
+	public static int receiversCount() {
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
+		
+		return receivers.size();
+	}
+	
 	// return whether the comms mgr knows about a receiver
 	public static boolean knows(String rcvname) {
-		if (name == null || socket == null)
-			throw new IllegalStateException("Cannot query until we have a name set");
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
 		
 		Receiver receiver = receivers.get(rcvname);
 		if (receiver == null)
@@ -103,12 +120,36 @@ public class CommunicationsManager {
 			return true;
 	}
 	
+	// which id corresponds to a receiver
+	public static int getReceiverId(String rcvname) {
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
+		
+		if (rcvname == null || (!rcvname.equals(name) && receivers.get(rcvname) == null))
+			throw new IllegalArgumentException("Invalid name "+rcvname);
+		
+		if (rcvname.equals(name))
+			return id;
+		else
+			return receivers.get(rcvname).id;
+	}
 	
+	
+	
+	// Broadcast a message to all registered receivers
+	public static void sendAll(EventMessage msg) {
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
+		
+		for (String rcvname : receivers.keySet()) {
+			send(rcvname, msg);
+		}
+	}
 	
 	// Sends a message to a specific receiver
 	public static void send(String rcvname, EventMessage msg) {
-		if (name == null || socket == null)
-			throw new IllegalStateException("Cannot send until we have a name set");
+		if (name == null)
+			throw new IllegalStateException("Haven't initialized");
 		
 		Receiver rcv = receivers.get(rcvname);
 		if (rcv == null || msg == null || msg.getEvent() == null)
@@ -131,6 +172,19 @@ public class CommunicationsManager {
 			ioe.printStackTrace();
 		}
 	}
+	
+	// Prepares a message for transmission (also marshalls it into a string)
+	private static String prepare(EventMessage msg) {
+		// Update EventManager clock and log and timestamp message
+		if (!msg.getEvent().isStealth())
+			EventManager.stamp(msg);
+		
+		// marshall message to string and return it
+		String text = msg.marshall();
+		return text;
+	}
+	
+	
 	
 	// Receiving loop for a particular receiver. Gets messages and processes them.
 	private static void receive() {
@@ -160,17 +214,6 @@ public class CommunicationsManager {
 		// Run any processing required by the received message
 		if (msg.getEvent().getHandler() != null)
 			msg.getEvent().getHandler().process(msg);
-	}
-	
-	// Prepares a message for transmission (also marshalls it into a string)
-	private static String prepare(EventMessage msg) {
-		// Update EventManager clock and log and timestamp message
-		if (!msg.getEvent().isStealth())
-			EventManager.stamp(msg);
-		
-		// marshall message to string and return it
-		String text = msg.marshall();
-		return text;
 	}
 	
 	// Unmarshalls a received stream into a message and pre-processes it
@@ -209,6 +252,7 @@ public class CommunicationsManager {
 	// small container for the information that defines a receiver
 	private static class Receiver {
 		public String name;
+		public int id;
 		public InetAddress address;
 		public int port;
 	}
