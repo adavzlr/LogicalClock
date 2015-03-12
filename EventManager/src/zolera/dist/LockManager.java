@@ -150,7 +150,7 @@ public class LockManager {
 				
 				// Let the waiting process know it can continue when all acks are received
 				if (req.acknowledges >= CommunicationsManager.receiversCount()) {
-					;// TODO: interrupt requesting thread so they can continue
+					reqThread.notify();
 					reqThread = null;
 				}
 				
@@ -181,7 +181,7 @@ public class LockManager {
 	
 	
 	// Information about a request for a lock
-	private static class LockRequest implements Comparable {
+	private static class LockRequest implements Comparable<LockRequest> {
 		public String resource;
 		public String requester;
 		public int    acknowledges;
@@ -196,8 +196,7 @@ public class LockManager {
 
 		// Requests are compared by clock and ties are broken by process ID
 		@Override
-		public int compareTo(Object o) {
-			LockRequest otherReq = (LockRequest) o;
+		public int compareTo(LockRequest otherReq) {
 			return	clock < otherReq.clock ? -1 :
 					clock > otherReq.clock ? 1  :
 					CommunicationsManager.getReceiverId(requester) - CommunicationsManager.getReceiverId(otherReq.requester);
