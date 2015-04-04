@@ -63,12 +63,15 @@ extends EventMessage {
 			
 			switch (msg.getEvent()) {
 			case REQUEST_CS:
+				System.out.println("Request received for " + msg.getResource() + " from " + msg.getSender());
 				LockManager.processLockMessage(msg);
 				break;
 			case RELEASE_CS:
+				System.out.println("Release received for " + msg.getResource() + " from " + msg.getSender());
 				LockManager.processReleaseMessage(msg);
 				break;
 			case ACKNOWLEDGE_CS:
+				System.out.println("Ack received for " + msg.getResource() + " from " + msg.getSender());
 				LockManager.processAcknowledgeMessage(msg);
 				break;
 			default:

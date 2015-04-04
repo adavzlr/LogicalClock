@@ -119,8 +119,8 @@ public class EventManager {
 	public static enum Event {
 		// Events log messages
 		MERGE_LOG_CHUNK (LogMessage.HANDLER,   true),
-		EVENT_START     (TestDrive.HANDLER,    true),
-		EVENT_END       (TestDrive.HANDLER,    true),
+		EVENT_START     (TestMutex.HANDLER,    true),
+		EVENT_END       (TestMutex.HANDLER,    true),
 		
 		// Non-messaging events
 		EVENT_1 (EventMessage.HANDLER, false),
